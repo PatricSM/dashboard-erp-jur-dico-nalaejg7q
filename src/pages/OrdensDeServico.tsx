@@ -61,34 +61,40 @@ export default function OrdensDeServico() {
 
   const { toast } = useToast()
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await getServiceOrdersPage({
-        page,
-        perPage: 25,
-        search: debouncedSearch,
-        status: statusFilter,
-        priority: priorityFilter,
-      })
-      setOrders(res.items)
-      setTotalPages(res.totalPages)
-    } catch (e: any) {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar as ordens de serviço.',
-        variant: 'destructive',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [page, debouncedSearch, statusFilter, priorityFilter, toast])
+  const load = useCallback(
+    async (showLoading = true) => {
+      if (showLoading) setLoading(true)
+      try {
+        const res = await getServiceOrdersPage({
+          page,
+          perPage: 25,
+          search: debouncedSearch,
+          status: statusFilter,
+          priority: priorityFilter,
+        })
+        setOrders(res.items)
+        setTotalPages(res.totalPages)
+      } catch (e: any) {
+        // Ignore network errors/aborts to handle connection drops gracefully
+        if (e?.status !== 0 && !e?.isAbort) {
+          toast({
+            title: 'Erro',
+            description: 'Não foi possível carregar as ordens de serviço.',
+            variant: 'destructive',
+          })
+        }
+      } finally {
+        if (showLoading) setLoading(false)
+      }
+    },
+    [page, debouncedSearch, statusFilter, priorityFilter, toast],
+  )
 
   useEffect(() => {
-    load()
+    load(true)
   }, [load])
 
-  useRealtime('service_orders', load)
+  useRealtime('service_orders', () => load(false))
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta Ordem de Serviço?')) {

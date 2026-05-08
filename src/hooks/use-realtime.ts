@@ -33,6 +33,13 @@ export function useRealtime(
           unsubscribeFn = fn
         }
       })
+      .catch((err) => {
+        // Prevent unhandled promise rejections on SSE connection drops (ClientResponseError 0)
+        // which could otherwise crash the app with an Error Boundary
+        if (err?.status !== 0 && !err?.isAbort) {
+          console.warn(`Realtime subscription error for ${collectionName}:`, err)
+        }
+      })
 
     return () => {
       cancelled = true
