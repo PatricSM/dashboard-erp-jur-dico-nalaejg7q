@@ -1,10 +1,5 @@
 migrate(
   (app) => {
-    try {
-      app.findCollectionByNameOrId('contract_amendments')
-      return
-    } catch (_) {}
-
     const collection = new Collection({
       name: 'contract_amendments',
       type: 'base',
@@ -19,7 +14,6 @@ migrate(
           type: 'relation',
           required: true,
           collectionId: app.findCollectionByNameOrId('contracts').id,
-          cascadeDelete: true,
           maxSelect: 1,
         },
         { name: 'description', type: 'text', required: true },
@@ -28,13 +22,15 @@ migrate(
         { name: 'created', type: 'autodate', onCreate: true, onUpdate: false },
         { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
       ],
+      indexes: [
+        'CREATE INDEX idx_contract_amendments_contract ON contract_amendments (contract_id)',
+        'CREATE INDEX idx_contract_amendments_date ON contract_amendments (date DESC)',
+      ],
     })
     app.save(collection)
   },
   (app) => {
-    try {
-      const collection = app.findCollectionByNameOrId('contract_amendments')
-      app.delete(collection)
-    } catch (_) {}
+    const collection = app.findCollectionByNameOrId('contract_amendments')
+    app.delete(collection)
   },
 )

@@ -6,6 +6,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { updateContract, getContractAmendments } from '@/services/contracts'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import pb from '@/lib/pocketbase/client'
 
 export function ContractSheet({ contract, open, onOpenChange }: any) {
   const { toast } = useToast()
@@ -100,6 +108,19 @@ export function ContractSheet({ contract, open, onOpenChange }: any) {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select name="status" defaultValue={contract.status}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="expired">Vencido</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button type="submit" disabled={isLoading} className="w-full">
                 Salvar Alterações
               </Button>
@@ -133,12 +154,24 @@ export function ContractSheet({ contract, open, onOpenChange }: any) {
             <form onSubmit={handleSave} className="space-y-4">
               <div className="space-y-2">
                 <Label>Substituir Documento</Label>
-                <Input name="documentos_url" type="file" accept=".pdf,image/*" />
+                <Input
+                  name="documentos_url"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
+                />
               </div>
               {contract.documentos_url && (
-                <p className="text-sm text-emerald-600 font-medium">
-                  ✅ Documento atual salvo na base.
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-sm text-emerald-600 font-medium">✅ Documento atual salvo:</p>
+                  <a
+                    href={pb.files.getUrl(contract, contract.documentos_url)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-indigo-600 hover:underline"
+                  >
+                    Ver arquivo
+                  </a>
+                </div>
               )}
               <Button type="submit" disabled={isLoading} variant="secondary" className="w-full">
                 Fazer Upload

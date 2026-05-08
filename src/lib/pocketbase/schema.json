@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-08T17:05:38.134Z",
+  "generatedAt": "2026-05-08T17:49:24.224Z",
   "collections": [
     {
       "name": "users",
@@ -393,6 +393,62 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "contract_amendments",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "contract_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "contracts"
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "date",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "value_change",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_contract_amendments_contract ON contract_amendments (contract_id)",
+        "CREATE INDEX idx_contract_amendments_date ON contract_amendments (date DESC)"
+      ]
     }
   ]
 }

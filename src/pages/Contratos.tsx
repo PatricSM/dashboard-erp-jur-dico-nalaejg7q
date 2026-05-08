@@ -49,9 +49,9 @@ export default function Contratos() {
   const today = startOfDay(new Date())
 
   const getExpiryColor = (dateStr: string, status: string) => {
-    if (!dateStr || status === 'cancelled') return 'text-slate-500'
+    if (!dateStr || status === 'cancelled' || status === 'expired') return 'text-slate-500'
     const days = differenceInDays(parseISO(dateStr), today)
-    if (days <= 7) return 'text-red-600 font-bold dark:text-red-400'
+    if (days <= 14) return 'text-red-600 font-bold dark:text-red-400'
     if (days <= 30) return 'text-orange-500 font-bold dark:text-orange-400'
     return 'text-emerald-600 dark:text-emerald-400'
   }
