@@ -4,11 +4,11 @@ migrate(
     const users = app.findCollectionByNameOrId('_pb_users_auth_')
     let adminId
     try {
-      const admin = app.findAuthRecordByEmail('_pb_users_auth_', 'patric.martins@adapta.org')
+      const admin = app.findAuthRecordByEmail('_pb_users_auth_', 'admin@legalcore.erp')
       adminId = admin.id
     } catch (_) {
       const record = new Record(users)
-      record.setEmail('patric.martins@adapta.org')
+      record.setEmail('admin@legalcore.erp')
       record.setPassword('Skip@Pass')
       record.setVerified(true)
       record.set('name', 'Admin')

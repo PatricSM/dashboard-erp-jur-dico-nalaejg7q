@@ -3,7 +3,12 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Scale, Mail, Lock, Eye, EyeOff, Fingerprint, Loader2 } from 'lucide-react'
+import { Scale, Mail, Lock, Eye, EyeOff, Fingerprint, Loader2, KeyRound } from 'lucide-react'
+
+const DEMO_ACCOUNTS = [
+  { role: 'Administrador', email: 'admin@legalcore.erp', password: 'Skip@Pass' },
+  { role: 'Advogado', email: 'advogado@legalcore.erp', password: 'Skip@Pass' },
+]
 
 import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/hooks/use-toast'
@@ -40,7 +45,7 @@ export default function Login() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'patric.martins@adapta.org',
+      email: 'admin@legalcore.erp',
       password: 'Skip@Pass',
       rememberMe: false,
     },
@@ -179,6 +184,32 @@ export default function Login() {
             </Button>
           </form>
         </Form>
+
+        <div className="mt-6 rounded-lg border border-dashed border-border/50 bg-muted/20 p-4">
+          <div className="mb-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <KeyRound className="h-3.5 w-3.5" />
+            Contas de demonstração — clique para preencher
+          </div>
+          <div className="space-y-2">
+            {DEMO_ACCOUNTS.map((acc) => (
+              <button
+                key={acc.email}
+                type="button"
+                onClick={() => {
+                  form.setValue('email', acc.email)
+                  form.setValue('password', acc.password)
+                }}
+                className="w-full rounded-md border bg-card px-3 py-2 text-left text-xs transition hover:border-secondary hover:bg-secondary/5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{acc.role}</span>
+                  <span className="font-mono text-muted-foreground">{acc.password}</span>
+                </div>
+                <div className="mt-0.5 font-mono text-muted-foreground">{acc.email}</div>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="mt-8 mb-6">
           <div className="relative">
