@@ -45,6 +45,7 @@ export default function OrdensDeServico() {
               <TableHead className="pl-6">Título</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Prioridade</TableHead>
+              <TableHead>Contrato</TableHead>
               <TableHead className="pr-6 text-right">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -53,6 +54,9 @@ export default function OrdensDeServico() {
               <TableRow key={o.id}>
                 <TableCell className="pl-6 font-medium">{o.title}</TableCell>
                 <TableCell className="text-slate-600">{o.expand?.client_id?.name || '-'}</TableCell>
+                <TableCell className="text-slate-600">
+                  {o.expand?.contrato_id?.title || '-'}
+                </TableCell>
                 <TableCell>
                   <Badge
                     className={`${priorityMap[o.priority]?.color || 'bg-slate-100'} border-0 shadow-none`}

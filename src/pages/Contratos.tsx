@@ -65,7 +65,11 @@ export default function Contratos() {
                 <TableCell className="text-slate-600">{c.expand?.client_id?.name || '-'}</TableCell>
                 <TableCell className="text-slate-600 font-medium">{fmtCurrency(c.value)}</TableCell>
                 <TableCell className="text-slate-500">
-                  {c.expiry_date ? fmtDate(c.expiry_date) : '-'}
+                  {c.vigencia_fim
+                    ? fmtDate(c.vigencia_fim)
+                    : c.expiry_date
+                      ? fmtDate(c.expiry_date)
+                      : '-'}
                 </TableCell>
                 <TableCell className="pr-6 text-right">
                   <Badge

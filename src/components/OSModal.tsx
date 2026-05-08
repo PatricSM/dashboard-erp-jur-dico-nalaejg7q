@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { getClients } from '@/services/clients'
+import { getContracts } from '@/services/contracts'
 import { createServiceOrder } from '@/services/service_orders'
 import { useToast } from '@/hooks/use-toast'
 import { Textarea } from '@/components/ui/textarea'
@@ -25,23 +26,35 @@ import { Textarea } from '@/components/ui/textarea'
 export function OSModal() {
   const [open, setOpen] = useState(false)
   const [clients, setClients] = useState<any[]>([])
+  const [contracts, setContracts] = useState<any[]>([])
   const { toast } = useToast()
 
   useEffect(() => {
-    if (open) getClients().then(setClients)
+    if (open) {
+      getClients().then(setClients)
+      getContracts().then(setContracts)
+    }
   }, [open])
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = new FormData(e.currentTarget)
+
+    const data: any = {
+      title: form.get('title'),
+      client_id: form.get('client_id'),
+      description: form.get('description'),
+      priority: form.get('priority'),
+      status: 'open',
+    }
+
+    const contrato_id = form.get('contrato_id')
+    if (contrato_id && contrato_id !== 'none') {
+      data.contrato_id = contrato_id
+    }
+
     try {
-      await createServiceOrder({
-        title: form.get('title'),
-        client_id: form.get('client_id'),
-        description: form.get('description'),
-        priority: form.get('priority'),
-        status: 'open',
-      })
+      await createServiceOrder(data)
       toast({ title: 'Sucesso', description: 'OS criada com sucesso.' })
       setOpen(false)
     } catch (err) {
@@ -75,6 +88,22 @@ export function OSModal() {
                 {clients.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contrato_id">Contrato (Opcional)</Label>
+            <Select name="contrato_id" defaultValue="none">
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o contrato..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum</SelectItem>
+                {contracts.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.title}
                   </SelectItem>
                 ))}
               </SelectContent>

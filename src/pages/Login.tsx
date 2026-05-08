@@ -3,8 +3,9 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Briefcase } from 'lucide-react'
+import { Briefcase, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { extractFieldErrors } from '@/lib/pocketbase/errors'
 
 export default function Login() {
   const [email, setEmail] = useState('patric.martins@adapta.org')
@@ -12,13 +13,26 @@ export default function Login() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const [err, setErr] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setErr('')
+    setFieldErrors({})
+    setIsSubmitting(true)
+
     const { error } = await signIn(email, password)
+
+    setIsSubmitting(false)
+
     if (error) {
-      setErr('Credenciais inválidas.')
+      const extracted = extractFieldErrors(error)
+      if (Object.keys(extracted).length > 0) {
+        setFieldErrors(extracted)
+      } else {
+        setErr('Credenciais inválidas ou erro no servidor.')
+      }
     } else {
       navigate('/')
     }
@@ -49,6 +63,9 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+              {fieldErrors.identity && (
+                <p className="text-sm text-red-500">{fieldErrors.identity}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Input
@@ -58,8 +75,16 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              {fieldErrors.password && (
+                <p className="text-sm text-red-500">{fieldErrors.password}</p>
+              )}
             </div>
-            <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Entrar
             </Button>
           </form>

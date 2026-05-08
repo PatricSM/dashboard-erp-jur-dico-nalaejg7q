@@ -22,14 +22,17 @@ export default function Index() {
     const next30 = new Date(Date.now() + 30 * 86400000).toISOString()
     const [active, expiring, openOS, billing] = await Promise.all([
       getContractsCount("status='active'"),
-      getContractsCount(`status='active' && expiry_date <= '${next30}'`),
+      getContractsCount(`status='active' && vigencia_fim <= '${next30}' && vigencia_fim != ''`),
       getServiceOrdersCount("status='open' || status='in_progress'"),
       getContractsTotalValue(),
     ])
     setMetrics({ active, expiring, openOS, billing })
   }
 
-  const loadActs = async () => getActivities().then((res) => setActivities(res.items))
+  const loadActs = async () =>
+    getActivities()
+      .then((res) => setActivities(res.items))
+      .catch(() => {})
 
   useEffect(() => {
     loadMetrics()
