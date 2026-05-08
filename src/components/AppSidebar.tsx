@@ -72,21 +72,7 @@ export function AppSidebar() {
 
       <div className="mt-auto px-3 w-full flex flex-col items-center gap-4">
         <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={signOut}
-              className="w-12 h-12 rounded-full focus:outline-none focus:ring-2 focus:ring-secondary transition-all hover:ring-2 hover:ring-secondary/50 flex items-center justify-center"
-            >
-              <Avatar className="w-full h-full border-2 border-primary-foreground/20">
-                <AvatarImage src={avatarUrl} />
-                <AvatarFallback className="bg-primary-foreground/10 text-primary-foreground font-medium">
-                  {user?.name?.charAt(0)?.toUpperCase() ||
-                    user?.email?.charAt(0)?.toUpperCase() ||
-                    'U'}
-                </AvatarFallback>
-              </Avatar>
-            </button>
-          </TooltipTrigger>
+          <TooltipTrigger asChild></TooltipTrigger>
           <TooltipContent
             side="right"
             className="font-medium bg-popover text-popover-foreground border-border"
