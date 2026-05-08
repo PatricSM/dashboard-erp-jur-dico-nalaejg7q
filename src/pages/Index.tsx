@@ -53,15 +53,15 @@ export default function Index() {
       </h1>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="hover:scale-[1.02] transition-transform duration-200 shadow-sm border-l-4 border-l-indigo-600">
+        <Card className="hover:scale-[1.02] transition-transform duration-200 shadow-sm border-l-4 border-l-secondary">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+            <CardTitle className="text-slate-600 dark:text-slate-400 text-label-caps">
               Contratos Ativos
             </CardTitle>
-            <FileText className="h-4 w-4 text-indigo-600" />
+            <FileText className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-900 dark:text-white">
+            <div className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums">
               {metrics.active}
             </div>
           </CardContent>
@@ -69,25 +69,25 @@ export default function Index() {
 
         <Card className="hover:scale-[1.02] transition-transform duration-200 shadow-sm border-l-4 border-l-amber-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+            <CardTitle className="text-slate-600 dark:text-slate-400 text-label-caps">
               A Vencer (30 dias)
             </CardTitle>
             <Clock className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-amber-600">{metrics.expiring}</div>
+            <div className="text-3xl font-bold text-amber-600 tabular-nums">{metrics.expiring}</div>
           </CardContent>
         </Card>
 
         <Card className="hover:scale-[1.02] transition-transform duration-200 shadow-sm border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+            <CardTitle className="text-slate-600 dark:text-slate-400 text-label-caps">
               OS em Aberto
             </CardTitle>
             <ClipboardList className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-900 dark:text-white">
+            <div className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums">
               {metrics.openOS}
             </div>
           </CardContent>
@@ -95,13 +95,13 @@ export default function Index() {
 
         <Card className="hover:scale-[1.02] transition-transform duration-200 shadow-sm border-l-4 border-l-emerald-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+            <CardTitle className="text-slate-600 dark:text-slate-400 text-label-caps">
               Faturamento Mensal
             </CardTitle>
             <DollarSign className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-600">
+            <div className="text-3xl font-bold text-emerald-600 tabular-nums">
               {fmtCurrency(metrics.billing)}
             </div>
           </CardContent>
@@ -111,7 +111,7 @@ export default function Index() {
       <Card className="shadow-sm border-slate-200 dark:border-slate-800">
         <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Activity className="h-5 w-5 text-indigo-500" /> Atividades Recentes
+            <Activity className="h-5 w-5 text-secondary" /> Atividades Recentes
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">

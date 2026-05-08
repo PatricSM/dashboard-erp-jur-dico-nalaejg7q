@@ -32,7 +32,7 @@ export default function Fornecedores() {
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
           Fornecedores
         </h1>
-        <Button onClick={handleAdd} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+        <Button onClick={handleAdd} className="bg-secondary hover:bg-secondary/90 text-white">
           <Plus className="h-4 w-4 mr-2" /> Novo Fornecedor
         </Button>
       </div>

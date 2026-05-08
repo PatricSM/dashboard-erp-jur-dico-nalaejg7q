@@ -32,7 +32,7 @@ export default function Layout() {
     <SidebarProvider>
       <Sidebar variant="inset">
         <SidebarHeader className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-2 font-bold text-xl text-indigo-500">
+          <div className="flex items-center gap-2 font-bold text-xl text-secondary">
             <Briefcase className="h-6 w-6" />
             <span>ERP Jurídico</span>
           </div>

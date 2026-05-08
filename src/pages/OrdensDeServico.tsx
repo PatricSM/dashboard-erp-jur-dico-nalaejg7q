@@ -27,7 +27,7 @@ export default function OrdensDeServico() {
 
   const priorityMap: Record<string, { label: string; color: string }> = {
     low: { label: 'Baixa', color: 'bg-slate-100 text-slate-700' },
-    medium: { label: 'Média', color: 'bg-indigo-100 text-indigo-700' },
+    medium: { label: 'Média', color: 'bg-secondary/20 text-secondary' },
     high: { label: 'Alta', color: 'bg-red-100 text-red-700' },
   }
 

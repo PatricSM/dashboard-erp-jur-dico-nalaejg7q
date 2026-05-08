@@ -42,8 +42,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950 p-4">
       <Card className="w-full max-w-md shadow-elevation border-0">
         <CardHeader className="space-y-2 text-center pb-6">
-          <div className="mx-auto bg-indigo-100 dark:bg-indigo-900/30 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-2">
-            <Briefcase className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+          <div className="mx-auto bg-secondary/10 dark:bg-secondary/20 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-2">
+            <Briefcase className="h-8 w-8 text-secondary" />
           </div>
           <CardTitle className="text-2xl font-bold">ERP Jurídico</CardTitle>
           <CardDescription>Acesse sua conta para continuar</CardDescription>
@@ -82,7 +82,7 @@ export default function Login() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="w-full bg-secondary hover:bg-secondary/90 text-white"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Entrar

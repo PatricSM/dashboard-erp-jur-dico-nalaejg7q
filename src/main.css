@@ -6,44 +6,35 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* slate-50 */
-    --foreground: 222.2 84% 4.9%;
-
+    --background: 320 13% 98%;
+    --foreground: 240 4% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 240 4% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 239 84% 67%; /* indigo-500 approx */
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 239 84% 67%;
-
+    --popover-foreground: 240 4% 11%;
+    --primary: 217 50% 9%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 100% 42%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 320 6% 95%;
+    --muted-foreground: 220 6% 28%;
+    --accent: 217 100% 95%;
+    --accent-foreground: 217 100% 42%;
+    --destructive: 0 75% 42%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 7% 78%;
+    --input: 220 7% 78%;
+    --ring: 217 100% 42%;
     --radius: 0.5rem;
 
-    --sidebar-background: 222 47% 11%; /* slate-900 */
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 239 84% 67%;
+    --sidebar-background: 217 50% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 217 100% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 15%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-accent: 217 50% 14%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 30% 18%;
+    --sidebar-ring: 217 100% 42%;
 
     --chart-1: 34 100% 44%;
     --chart-2: 189 100% 38%;
@@ -53,42 +44,34 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 217 50% 9%;
+    --foreground: 0 0% 100%;
+    --card: 217 50% 9%;
+    --card-foreground: 0 0% 100%;
+    --popover: 217 50% 9%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 217 100% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 100% 42%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 30% 18%;
+    --muted-foreground: 220 7% 78%;
+    --accent: 217 30% 18%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 75% 42%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 30% 18%;
+    --input: 217 30% 18%;
+    --ring: 217 100% 42%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 239 84% 67%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 239 84% 67%;
-
-    --sidebar-background: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 239 84% 67%;
+    --sidebar-background: 217 50% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 217 100% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-accent: 217 50% 14%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 30% 18%;
+    --sidebar-ring: 217 100% 42%;
 
     --chart-1: 270 100% 44%;
     --chart-2: 164 100% 38%;
@@ -214,6 +197,18 @@
       opacity: 1;
       transform: translate(-50%, -40%) scale(1);
     }
+  }
+
+  .text-label-caps {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 
   .animate-accordion-down {

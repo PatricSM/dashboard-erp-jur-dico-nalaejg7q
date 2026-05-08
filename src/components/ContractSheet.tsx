@@ -141,7 +141,7 @@ export function ContractSheet({ contract, open, onOpenChange }: any) {
                     Data: {new Date(a.date).toLocaleDateString('pt-BR')}
                   </p>
                   {a.value_change && (
-                    <p className="text-indigo-600 mt-1 font-medium">
+                    <p className="text-secondary mt-1 font-medium tabular-nums">
                       Alteração: R$ {a.value_change}
                     </p>
                   )}
@@ -167,7 +167,7 @@ export function ContractSheet({ contract, open, onOpenChange }: any) {
                     href={pb.files.getUrl(contract, contract.documentos_url)}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm text-indigo-600 hover:underline"
+                    className="text-sm text-secondary hover:underline"
                   >
                     Ver arquivo
                   </a>

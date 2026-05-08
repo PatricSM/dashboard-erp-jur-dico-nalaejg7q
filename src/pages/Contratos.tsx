@@ -94,7 +94,7 @@ export default function Contratos() {
           </Select>
           <Button
             onClick={handleAdd}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
+            className="bg-secondary hover:bg-secondary/90 text-white w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo Contrato
           </Button>
@@ -123,7 +123,7 @@ export default function Contratos() {
                 <TableCell className="text-slate-600 dark:text-slate-400">
                   {c.expand?.client_id?.name || '-'}
                 </TableCell>
-                <TableCell className="text-slate-600 dark:text-slate-400 font-medium">
+                <TableCell className="text-slate-600 dark:text-slate-400 font-medium tabular-nums">
                   {fmtCurrency(c.value)}
                 </TableCell>
                 <TableCell className={getExpiryColor(c.vigencia_fim || c.expiry_date, c.status)}>

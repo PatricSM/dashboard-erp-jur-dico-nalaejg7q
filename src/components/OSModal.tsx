@@ -65,7 +65,7 @@ export function OSModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="animate-pulse shadow-md bg-indigo-600 hover:bg-indigo-700 text-white">
+        <Button className="animate-pulse shadow-md bg-secondary hover:bg-secondary/90 text-white">
           Nova Ordem de Serviço
         </Button>
       </DialogTrigger>
@@ -134,7 +134,7 @@ export function OSModal() {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button type="submit" className="bg-secondary hover:bg-secondary/90 text-white">
               Criar OS
             </Button>
           </DialogFooter>
