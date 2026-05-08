@@ -1,21 +1,29 @@
 import { ReactNode } from 'react'
 
-export interface PageHeaderProps {
+interface PageHeaderProps {
   title: string
   subtitle?: string
   actions?: ReactNode
+  icon?: React.ElementType
 }
 
-export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions, icon: Icon }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          {title}
-        </h1>
-        {subtitle && <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="flex items-center gap-3">
+        {Icon && (
+          <div className="p-2 bg-primary/10 rounded-lg text-primary">
+            <Icon className="w-6 h-6" />
+          </div>
+        )}
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+            {title}
+          </h1>
+          {subtitle && <p className="text-slate-500 mt-1">{subtitle}</p>}
+        </div>
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div>{actions}</div>}
     </div>
   )
 }
