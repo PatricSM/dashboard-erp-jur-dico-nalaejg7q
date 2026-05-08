@@ -76,7 +76,7 @@ export default function Login() {
   }
 
   return (
-    <main className="relative min-h-screen flex items-center justify-center bg-background p-4">
+    <main className="relative min-h-screen flex items-center justify-center bg-background p-4 pt-[0px]">
       {/* Background Decor */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-secondary/5 -skew-x-12 transform origin-top-right" />
@@ -84,9 +84,9 @@ export default function Login() {
       </div>
 
       {/* Login Card */}
-      <div className="w-full max-w-[480px] bg-card/95 backdrop-blur-md p-10 rounded-2xl shadow-[0_12px_40px_-12px_rgba(0,81,213,0.12)] border border-border/30 relative z-10">
+      <div className="w-full max-w-[480px] bg-card/95 backdrop-blur-md p-10 rounded-2xl shadow-[0_12px_40px_-12px_rgba(0,81,213,0.12)] border border-border/30 relative z-10 pt-[0px]">
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-secondary w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+          <div className="bg-secondary w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg pt-[0px] mt-[30px]">
             <Scale className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-display font-bold text-foreground">ERP Jurídico</h1>
@@ -182,45 +182,12 @@ export default function Login() {
 
         <div className="mt-8 mb-6">
           <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border/50"></div>
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-2 text-muted-foreground text-label-caps">
-                Ou continue com
-              </span>
-            </div>
+            <div className="absolute inset-0 flex items-center"></div>
+            <div className="relative flex justify-center text-xs"></div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={handleComingSoon}
-            className="border-border/50 bg-background/50 hover:bg-muted"
-          >
-            Google
-          </Button>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={handleComingSoon}
-            className="border-border/50 bg-background/50 hover:bg-muted"
-          >
-            Microsoft
-          </Button>
-        </div>
-
-        <Button
-          variant="outline"
-          type="button"
-          onClick={handleComingSoon}
-          className="w-full border-secondary/50 text-secondary hover:bg-secondary/5"
-        >
-          <Fingerprint className="mr-2 h-5 w-5" />
-          Entrar com Biometria
-        </Button>
+        <div className="grid grid-cols-2 gap-4 mb-4"></div>
       </div>
 
       {/* Footer */}
