@@ -97,7 +97,7 @@ migrate(
     const users = app.findCollectionByNameOrId('_pb_users_auth_')
     let adminId = null
     try {
-      const admin = app.findAuthRecordByEmail('_pb_users_auth_', 'patric.martins@adapta.org')
+      const admin = app.findAuthRecordByEmail('_pb_users_auth_', 'admin@legalcore.erp')
       adminId = admin.id
     } catch (_) {}
 
