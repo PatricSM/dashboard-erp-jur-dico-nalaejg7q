@@ -84,7 +84,7 @@ export default function Login() {
       </div>
 
       {/* Login Card */}
-      <div className="w-full max-w-[480px] bg-card/95 backdrop-blur-md p-10 rounded-2xl shadow-[0_12px_40px_-12px_rgba(0,81,213,0.12)] border border-border/30 relative z-10 pt-[0px]">
+      <div className="w-full max-w-[480px] bg-card/95 backdrop-blur-md p-10 rounded-2xl shadow-[0_12px_40px_-12px_rgba(0,81,213,0.12)] border border-border/30 relative z-10 pt-[0px] mb-[15px]">
         <div className="flex flex-col items-center mb-8">
           <div className="bg-secondary w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg pt-[0px] mt-[30px]">
             <Scale className="h-8 w-8 text-white" />
