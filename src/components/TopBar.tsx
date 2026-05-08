@@ -1,8 +1,8 @@
-import { Search, Bell, Plus, Menu, LogOut } from 'lucide-react'
+import { Search, Plus, Menu, LogOut } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
+import { NotificationsBell } from './NotificationsBell'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,12 +23,6 @@ import { AppSidebar } from './AppSidebar'
 
 export function TopBar({ onOpenOSModal }: { onOpenOSModal: () => void }) {
   const { user, signOut } = useAuth()
-
-  const handleNotifications = () => {
-    toast('Feature coming soon', {
-      description: 'O sistema de notificações será implementado em breve.',
-    })
-  }
 
   const avatarUrl = user?.avatar
     ? `${import.meta.env.VITE_POCKETBASE_URL}/api/files/${user?.collectionId}/${user?.id}/${user?.avatar}`
@@ -69,14 +63,7 @@ export function TopBar({ onOpenOSModal }: { onOpenOSModal: () => void }) {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleNotifications}
-          className="text-muted-foreground hover:text-foreground h-9 w-9"
-        >
-          <Bell className="h-5 w-5" />
-        </Button>
+        <NotificationsBell />
 
         <Button
           onClick={onOpenOSModal}
