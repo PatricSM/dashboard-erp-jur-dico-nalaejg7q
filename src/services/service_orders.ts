@@ -8,4 +8,11 @@ export const getServiceOrdersCount = async (filter: string) => {
   return res.totalItems
 }
 
+export const getRecentServiceOrders = () => {
+  return pb.collection('service_orders').getList(1, 5, {
+    sort: '-created',
+    expand: 'client_id',
+  })
+}
+
 export const createServiceOrder = (data: any) => pb.collection('service_orders').create(data)

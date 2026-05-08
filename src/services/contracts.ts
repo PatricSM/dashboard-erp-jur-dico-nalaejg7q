@@ -13,6 +13,15 @@ export const getContractsTotalValue = async () => {
   return res.reduce((acc, curr) => acc + (curr.value || 0), 0)
 }
 
+export const getExpiringContracts = () => {
+  const next30 = new Date(Date.now() + 30 * 86400000).toISOString().replace('T', ' ')
+  return pb.collection('contracts').getList(1, 5, {
+    filter: `expiry_date >= @now && expiry_date <= '${next30}'`,
+    sort: 'expiry_date',
+    expand: 'client_id',
+  })
+}
+
 export const updateContract = (id: string, data: FormData | any) =>
   pb.collection('contracts').update(id, data)
 
