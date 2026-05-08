@@ -1,5 +1,10 @@
 migrate(
   (app) => {
+    try {
+      app.findCollectionByNameOrId('contract_amendments')
+      return
+    } catch (_) {}
+
     const collection = new Collection({
       name: 'contract_amendments',
       type: 'base',
