@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-08T18:52:06.540Z",
+  "generatedAt": "2026-05-08T18:55:12.206Z",
   "collections": [
     {
       "name": "users",
@@ -546,6 +546,106 @@
         "CREATE INDEX idx_os_schedules_assigned_to ON os_schedules (assigned_to)",
         "CREATE INDEX idx_os_schedules_starts_at ON os_schedules (starts_at)",
         "CREATE INDEX idx_os_schedules_status ON os_schedules (status)"
+      ]
+    },
+    {
+      "name": "notifications",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && recipient = @request.auth.id",
+        "view": "@request.auth.id != '' && recipient = @request.auth.id",
+        "create": "@request.auth.id != '' && recipient = @request.auth.id",
+        "update": "@request.auth.id != '' && recipient = @request.auth.id",
+        "delete": "@request.auth.id != '' && recipient = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "recipient",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "kind",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "os_assigned",
+            "os_status_changed",
+            "schedule_today",
+            "schedule_confirm",
+            "no_show",
+            "contract_expiring",
+            "contract_expired",
+            "amendment_created",
+            "mention",
+            "system"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "body",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "contract_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "contracts"
+        },
+        {
+          "name": "service_order_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "service_orders"
+        },
+        {
+          "name": "schedule_id",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "os_schedules"
+        },
+        {
+          "name": "link",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "read_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_notifications_recipient_read_at ON notifications (recipient, read_at)"
       ]
     }
   ]

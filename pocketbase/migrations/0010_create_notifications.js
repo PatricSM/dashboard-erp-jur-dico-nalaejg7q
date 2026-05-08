@@ -1,5 +1,9 @@
 migrate(
   (app) => {
+    const contractsId = app.findCollectionByNameOrId('contracts').id
+    const serviceOrdersId = app.findCollectionByNameOrId('service_orders').id
+    const schedulesId = app.findCollectionByNameOrId('os_schedules').id
+
     const collection = new Collection({
       name: 'notifications',
       type: 'base',
@@ -40,21 +44,21 @@ migrate(
         {
           name: 'contract_id',
           type: 'relation',
-          collectionId: 'contracts',
+          collectionId: contractsId,
           cascadeDelete: true,
           maxSelect: 1,
         },
         {
           name: 'service_order_id',
           type: 'relation',
-          collectionId: 'service_orders',
+          collectionId: serviceOrdersId,
           cascadeDelete: true,
           maxSelect: 1,
         },
         {
           name: 'schedule_id',
           type: 'relation',
-          collectionId: 'os_schedules',
+          collectionId: schedulesId,
           cascadeDelete: true,
           maxSelect: 1,
         },
