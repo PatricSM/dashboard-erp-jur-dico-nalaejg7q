@@ -9,6 +9,7 @@ import {
   PackageOpen,
   FileClock,
   ClipboardList,
+  Calendar,
 } from 'lucide-react'
 import { format, subDays, isSameDay, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -29,6 +30,7 @@ import {
   getContractsTotalValue,
   getExpiringContracts,
 } from '@/services/contracts'
+import { getSchedulesCount } from '@/services/os_schedules'
 import { getClientsCount } from '@/services/clients'
 import { getSuppliersCount } from '@/services/suppliers'
 import { getRecentServiceOrders } from '@/services/service_orders'
@@ -58,24 +60,37 @@ const mapStatusToLabel = (status: string) => {
 
 export default function Index() {
   const [loading, setLoading] = useState(true)
-  const [metrics, setMetrics] = useState({ clients: 0, suppliers: 0, contracts: 0, revenue: 0 })
+  const [metrics, setMetrics] = useState({
+    clients: 0,
+    suppliers: 0,
+    contracts: 0,
+    revenue: 0,
+    osHoje: 0,
+  })
   const [expiringContracts, setExpiringContracts] = useState<any[]>([])
   const [recentOS, setRecentOS] = useState<any[]>([])
   const [chartData, setChartData] = useState<any[]>([])
 
   const loadData = async () => {
     try {
-      const [clients, suppliers, contracts, revenue, expiring, os, acts] = await Promise.all([
-        getClientsCount("status='active'"),
-        getSuppliersCount("status='active'"),
-        getContractsCount("status='active' || (expiry_date != '' && expiry_date > @now)"),
-        getContractsTotalValue(),
-        getExpiringContracts(),
-        getRecentServiceOrders(),
-        getActivities(),
-      ])
+      const startOfToday = format(new Date(), 'yyyy-MM-dd 00:00:00')
+      const endOfToday = format(new Date(), 'yyyy-MM-dd 23:59:59')
 
-      setMetrics({ clients, suppliers, contracts, revenue })
+      const [clients, suppliers, contracts, revenue, osHoje, expiring, os, acts] =
+        await Promise.all([
+          getClientsCount("status='active'"),
+          getSuppliersCount("status='active'"),
+          getContractsCount("status='active' || (expiry_date != '' && expiry_date > @now)"),
+          getContractsTotalValue(),
+          getSchedulesCount(
+            `starts_at >= '${startOfToday}' && starts_at <= '${endOfToday}' && (status='scheduled' || status='confirmed' || status='in_progress')`,
+          ),
+          getExpiringContracts(),
+          getRecentServiceOrders(),
+          getActivities(),
+        ])
+
+      setMetrics({ clients, suppliers, contracts, revenue, osHoje })
       setExpiringContracts(expiring.items || [])
       setRecentOS(os.items || [])
 
@@ -106,6 +121,7 @@ export default function Index() {
   useRealtime('contracts', loadData)
   useRealtime('service_orders', loadData)
   useRealtime('activities', loadData)
+  useRealtime('os_schedules', loadData)
 
   const fmtCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
@@ -144,7 +160,28 @@ export default function Index() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <Card
+          className="hover:scale-[1.02] transition-transform duration-200 shadow-sm border-l-4 border-l-purple-500 cursor-pointer"
+          onClick={() => (window.location.href = '/agenda?view=day')}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              OS Hoje
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums">
+                {metrics.osHoje}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="hover:scale-[1.02] transition-transform duration-200 shadow-sm border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">

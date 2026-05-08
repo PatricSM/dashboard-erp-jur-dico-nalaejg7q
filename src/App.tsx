@@ -10,6 +10,7 @@ import Index from './pages/Index'
 import Clientes from './pages/Clientes'
 import Fornecedores from './pages/Fornecedores'
 import Contratos from './pages/Contratos'
+import Agenda from './pages/Agenda'
 import OrdensDeServico from './pages/OrdensDeServico'
 import NotFound from './pages/NotFound'
 
@@ -39,6 +40,7 @@ const AppRoutes = () => (
       <Route path="/clientes" element={<Clientes />} />
       <Route path="/fornecedores" element={<Fornecedores />} />
       <Route path="/contratos" element={<Contratos />} />
+      <Route path="/agenda" element={<Agenda />} />
       <Route path="/ordens-de-servico" element={<OrdensDeServico />} />
     </Route>
     <Route path="*" element={<NotFound />} />

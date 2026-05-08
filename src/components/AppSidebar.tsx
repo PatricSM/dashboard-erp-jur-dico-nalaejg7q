@@ -1,5 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Users, Briefcase, FileText, ClipboardList, Scale } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Users,
+  Briefcase,
+  FileText,
+  CalendarDays,
+  ClipboardList,
+  Scale,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useAuth } from '@/hooks/use-auth'
@@ -10,6 +18,7 @@ const NAV_ITEMS = [
   { title: 'Clientes', url: '/clientes', icon: Users },
   { title: 'Fornecedores', url: '/fornecedores', icon: Briefcase },
   { title: 'Contratos', url: '/contratos', icon: FileText },
+  { title: 'Agenda', url: '/agenda', icon: CalendarDays },
   { title: 'Ordens de Serviço', url: '/ordens-de-servico', icon: ClipboardList },
 ]
 
