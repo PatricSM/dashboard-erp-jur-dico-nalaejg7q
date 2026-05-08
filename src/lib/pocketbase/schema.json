@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-08T18:55:12.206Z",
+  "generatedAt": "2026-05-08T19:00:07.714Z",
   "collections": [
     {
       "name": "users",
@@ -254,6 +254,18 @@
           "type": "file",
           "required": false,
           "system": false
+        },
+        {
+          "name": "archived",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "archived_at",
+          "type": "date",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -353,6 +365,18 @@
         },
         {
           "name": "scheduled_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "archived",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "archived_at",
           "type": "date",
           "required": false,
           "system": false

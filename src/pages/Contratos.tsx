@@ -16,28 +16,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { useRealtime } from '@/hooks/use-realtime'
-import { Plus, Search, LayoutGrid, List, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import {
+  Plus,
+  Search,
+  LayoutGrid,
+  List,
+  ChevronLeft,
+  ChevronRight,
+  Archive,
+  ArchiveRestore,
+  Download,
+  Trash2,
+  CheckCircle2,
+} from 'lucide-react'
 import { differenceInDays, parseISO, startOfDay } from 'date-fns'
 import { ContractSheet } from '@/components/ContractSheet'
 import { StatusChip } from '@/components/StatusChip'
+import { BulkActionsBar } from '@/components/BulkActionsBar'
 import pb from '@/lib/pocketbase/client'
 
 export default function Contratos() {
+  const { toast } = useToast()
   const [data, setData] = useState<any>({ items: [], totalPages: 1 })
   const [clients, setClients] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+
   const [statusFilter, setStatusFilter] = useState('all')
   const [clientFilter, setClientFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [showArchived, setShowArchived] = useState(false)
   const [page, setPage] = useState(1)
+
   const [selectedContract, setSelectedContract] = useState<any>(null)
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [isProcessingBulk, setIsProcessingBulk] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300)
@@ -52,6 +82,13 @@ export default function Contratos() {
     setIsLoading(true)
     try {
       const filters = []
+
+      if (showArchived) {
+        filters.push(`archived = true`)
+      } else {
+        filters.push(`(archived = false || archived = null)`)
+      }
+
       if (statusFilter !== 'all') filters.push(`status='${statusFilter}'`)
       if (clientFilter !== 'all') filters.push(`client_id='${clientFilter}'`)
       if (debouncedSearch)
@@ -72,7 +109,7 @@ export default function Contratos() {
 
   useEffect(() => {
     loadData()
-  }, [page, statusFilter, clientFilter, typeFilter, debouncedSearch])
+  }, [page, statusFilter, clientFilter, typeFilter, debouncedSearch, showArchived])
 
   useRealtime('contracts', loadData)
 
@@ -91,6 +128,100 @@ export default function Contratos() {
     const days = differenceInDays(parseISO(dateStr), startOfDay(new Date()))
     if (days >= 0 && days <= 30) return 'expiring'
     return c.status
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newIds = data.items.map((i: any) => i.id)
+      setSelectedIds(Array.from(new Set([...selectedIds, ...newIds])))
+    } else {
+      const currentIds = data.items.map((i: any) => i.id)
+      setSelectedIds(selectedIds.filter((id) => !currentIds.includes(id)))
+    }
+  }
+
+  const isAllSelected =
+    data.items.length > 0 && data.items.every((i: any) => selectedIds.includes(i.id))
+
+  const handleBulkAction = async (
+    action: 'status' | 'archive' | 'unarchive' | 'delete',
+    payload?: any,
+  ) => {
+    if (selectedIds.length === 0) return
+    if (
+      action === 'delete' &&
+      !confirm('Tem certeza que deseja excluir os registros selecionados permanentemente?')
+    )
+      return
+
+    setIsProcessingBulk(true)
+    let success = 0
+    let failed = 0
+
+    for (const id of selectedIds) {
+      try {
+        if (action === 'status') {
+          await pb.collection('contracts').update(id, { status: payload })
+        } else if (action === 'archive') {
+          await pb
+            .collection('contracts')
+            .update(id, { archived: true, archived_at: new Date().toISOString() })
+        } else if (action === 'unarchive') {
+          await pb.collection('contracts').update(id, { archived: false, archived_at: null })
+        } else if (action === 'delete') {
+          await pb.collection('contracts').delete(id)
+        }
+        success++
+      } catch (err) {
+        failed++
+      }
+    }
+
+    toast({
+      title: 'Ação concluída',
+      description: `${success} item(ns) processado(s) com sucesso. ${failed > 0 ? `${failed} falha(s).` : ''}`,
+      variant: failed > 0 ? 'destructive' : 'default',
+    })
+
+    setSelectedIds([])
+    setIsProcessingBulk(false)
+    loadData()
+  }
+
+  const handleExportCsv = async () => {
+    setIsProcessingBulk(true)
+    try {
+      const records = await Promise.all(
+        selectedIds.map((id) => pb.collection('contracts').getOne(id)),
+      )
+      const headers = [
+        'id',
+        'title',
+        'value',
+        'vigencia_inicio',
+        'vigencia_fim',
+        'status',
+        'created',
+      ]
+
+      const csvRows = records.map((r) => {
+        return headers.map((h) => `"${(r[h] || '').toString().replace(/"/g, '""')}"`).join(',')
+      })
+
+      const csvString = [headers.join(','), ...csvRows].join('\n')
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `contratos-${Date.now()}.csv`
+      link.click()
+
+      toast({ title: 'Exportação concluída' })
+      setSelectedIds([])
+    } catch (err) {
+      toast({ title: 'Erro ao exportar CSV', variant: 'destructive' })
+    } finally {
+      setIsProcessingBulk(false)
+    }
   }
 
   const renderPagination = () => {
@@ -131,7 +262,7 @@ export default function Contratos() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up pb-8">
+    <div className="space-y-6 animate-fade-in-up pb-8 relative min-h-screen">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
           Contratos
@@ -153,6 +284,13 @@ export default function Contratos() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          <div className="flex items-center space-x-2 mr-2">
+            <Switch id="archived-mode" checked={showArchived} onCheckedChange={setShowArchived} />
+            <Label htmlFor="archived-mode" className="text-sm font-medium cursor-pointer">
+              Arquivados
+            </Label>
+          </div>
+
           <Select
             value={statusFilter}
             onValueChange={(v) => {
@@ -168,23 +306,6 @@ export default function Contratos() {
               <SelectItem value="active">Ativo</SelectItem>
               <SelectItem value="expired">Vencido</SelectItem>
               <SelectItem value="cancelled">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={typeFilter}
-            onValueChange={(v) => {
-              setTypeFilter(v)
-              setPage(1)
-            }}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Tipos</SelectItem>
-              <SelectItem value="prestacao">Prestação de Serviço</SelectItem>
-              <SelectItem value="locacao">Locação</SelectItem>
             </SelectContent>
           </Select>
 
@@ -244,8 +365,11 @@ export default function Contratos() {
           <Table>
             <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
               <TableRow>
-                <TableHead className="pl-6">Cliente</TableHead>
-                <TableHead>Título / Tipo</TableHead>
+                <TableHead className="w-[40px] pl-4">
+                  <Checkbox checked={isAllSelected} onCheckedChange={handleSelectAll} />
+                </TableHead>
+                <TableHead className="pl-2">Cliente</TableHead>
+                <TableHead>Título</TableHead>
                 <TableHead>Valor</TableHead>
                 <TableHead>Vencimento</TableHead>
                 <TableHead className="pr-6 text-right">Status</TableHead>
@@ -255,10 +379,19 @@ export default function Contratos() {
               {data.items.map((c: any) => (
                 <TableRow
                   key={c.id}
-                  className="cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors"
+                  className={`cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors ${selectedIds.includes(c.id) ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                   onClick={() => setSelectedContract(c)}
                 >
-                  <TableCell className="pl-6">
+                  <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedIds.includes(c.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) setSelectedIds([...selectedIds, c.id])
+                        else setSelectedIds(selectedIds.filter((id) => id !== c.id))
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell className="pl-2">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
                         <AvatarImage
@@ -287,7 +420,7 @@ export default function Contratos() {
               ))}
               {data.items.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">
                     Nenhum contrato encontrado.
                   </TableCell>
                 </TableRow>
@@ -300,11 +433,20 @@ export default function Contratos() {
           {data.items.map((c: any) => (
             <Card
               key={c.id}
-              className="cursor-pointer hover:shadow-md transition-shadow dark:bg-slate-900"
+              className={`cursor-pointer hover:shadow-md transition-all relative dark:bg-slate-900 ${selectedIds.includes(c.id) ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-950' : ''}`}
               onClick={() => setSelectedContract(c)}
             >
+              <div className="absolute top-3 right-3 z-10" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedIds.includes(c.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) setSelectedIds([...selectedIds, c.id])
+                    else setSelectedIds(selectedIds.filter((id) => id !== c.id))
+                  }}
+                />
+              </div>
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start pr-6">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage
@@ -315,7 +457,7 @@ export default function Contratos() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-base font-semibold">
+                      <CardTitle className="text-base font-semibold pr-4">
                         {c.expand?.client_id?.name || 'Sem Cliente'}
                       </CardTitle>
                       <p className="text-sm text-slate-500 line-clamp-1">{c.title}</p>
@@ -326,7 +468,7 @@ export default function Contratos() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-end">
                   <div className="space-y-1">
-                    <p className="text-xs text-slate-500">Valor (Mensal)</p>
+                    <p className="text-xs text-slate-500">Valor</p>
                     <p className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                       {fmtCurrency(c.value)}
                     </p>
@@ -359,6 +501,78 @@ export default function Contratos() {
         open={!!selectedContract}
         onOpenChange={(val: boolean) => !val && setSelectedContract(null)}
       />
+
+      <BulkActionsBar
+        selectedCount={selectedIds.length}
+        onClear={() => setSelectedIds([])}
+        isProcessing={isProcessingBulk}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Status
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start">
+            <DropdownMenuItem onClick={() => handleBulkAction('status', 'active')}>
+              Ativo
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleBulkAction('status', 'expired')}>
+              Vencido
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleBulkAction('status', 'cancelled')}>
+              Cancelado
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {!showArchived ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => handleBulkAction('archive')}
+            className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0"
+          >
+            <Archive className="h-4 w-4 mr-2" />
+            Arquivar
+          </Button>
+        ) : (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => handleBulkAction('unarchive')}
+            className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0"
+          >
+            <ArchiveRestore className="h-4 w-4 mr-2" />
+            Desarquivar
+          </Button>
+        )}
+
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleExportCsv}
+          className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Exportar
+        </Button>
+
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => handleBulkAction('delete')}
+          className="border-0"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Excluir
+        </Button>
+      </BulkActionsBar>
     </div>
   )
 }

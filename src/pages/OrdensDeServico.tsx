@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getServiceOrdersPage, deleteServiceOrder } from '@/services/service_orders'
+import { getUsers } from '@/services/users'
 import {
   Table,
   TableBody,
@@ -25,12 +26,28 @@ import {
 import { Button } from '@/components/ui/button'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Search, Plus, MoreHorizontal, Edit, Trash2, CalendarDays } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  CalendarDays,
+  Archive,
+  ArchiveRestore,
+  Download,
+  UserPlus,
+  CheckCircle2,
+} from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
@@ -42,24 +59,39 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { BulkActionsBar } from '@/components/BulkActionsBar'
+import pb from '@/lib/pocketbase/client'
 
 export default function OrdensDeServico() {
   const [orders, setOrders] = useState<any[]>([])
+  const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm, 300)
+
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
+  const [showArchived, setShowArchived] = useState(false)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
 
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [isProcessingBulk, setIsProcessingBulk] = useState(false)
+
   const { toast } = useToast()
+
+  useEffect(() => {
+    getUsers().then(setUsers).catch(console.error)
+  }, [])
 
   const load = useCallback(
     async (showLoading = true) => {
@@ -71,11 +103,11 @@ export default function OrdensDeServico() {
           search: debouncedSearch,
           status: statusFilter,
           priority: priorityFilter,
+          showArchived,
         })
         setOrders(res.items)
         setTotalPages(res.totalPages)
       } catch (e: any) {
-        // Ignore network errors/aborts to handle connection drops gracefully
         if (e?.status !== 0 && !e?.isAbort) {
           toast({
             title: 'Erro',
@@ -87,7 +119,7 @@ export default function OrdensDeServico() {
         if (showLoading) setLoading(false)
       }
     },
-    [page, debouncedSearch, statusFilter, priorityFilter, toast],
+    [page, debouncedSearch, statusFilter, priorityFilter, showArchived, toast],
   )
 
   useEffect(() => {
@@ -113,8 +145,95 @@ export default function OrdensDeServico() {
     setIsSheetOpen(true)
   }
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newIds = orders.map((o) => o.id)
+      setSelectedIds(Array.from(new Set([...selectedIds, ...newIds])))
+    } else {
+      const currentIds = orders.map((o) => o.id)
+      setSelectedIds(selectedIds.filter((id) => !currentIds.includes(id)))
+    }
+  }
+
+  const isAllSelected = orders.length > 0 && orders.every((o) => selectedIds.includes(o.id))
+
+  const handleBulkAction = async (
+    action: 'status' | 'assign' | 'archive' | 'unarchive' | 'delete',
+    payload?: any,
+  ) => {
+    if (selectedIds.length === 0) return
+    if (
+      action === 'delete' &&
+      !confirm('Tem certeza que deseja excluir as ordens selecionadas permanentemente?')
+    )
+      return
+
+    setIsProcessingBulk(true)
+    let success = 0
+    let failed = 0
+
+    for (const id of selectedIds) {
+      try {
+        if (action === 'status') {
+          await pb.collection('service_orders').update(id, { status: payload })
+        } else if (action === 'assign') {
+          await pb.collection('service_orders').update(id, { assigned_to: payload })
+        } else if (action === 'archive') {
+          await pb
+            .collection('service_orders')
+            .update(id, { archived: true, archived_at: new Date().toISOString() })
+        } else if (action === 'unarchive') {
+          await pb.collection('service_orders').update(id, { archived: false, archived_at: null })
+        } else if (action === 'delete') {
+          await pb.collection('service_orders').delete(id)
+        }
+        success++
+      } catch (err) {
+        failed++
+      }
+    }
+
+    toast({
+      title: 'Ação concluída',
+      description: `${success} item(ns) processado(s) com sucesso. ${failed > 0 ? `${failed} falha(s).` : ''}`,
+      variant: failed > 0 ? 'destructive' : 'default',
+    })
+
+    setSelectedIds([])
+    setIsProcessingBulk(false)
+    load()
+  }
+
+  const handleExportCsv = async () => {
+    setIsProcessingBulk(true)
+    try {
+      const records = await Promise.all(
+        selectedIds.map((id) => pb.collection('service_orders').getOne(id)),
+      )
+      const headers = ['id', 'title', 'description', 'status', 'priority', 'assigned_to', 'created']
+
+      const csvRows = records.map((r) => {
+        return headers.map((h) => `"${(r[h] || '').toString().replace(/"/g, '""')}"`).join(',')
+      })
+
+      const csvString = [headers.join(','), ...csvRows].join('\n')
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `ordens-servico-${Date.now()}.csv`
+      link.click()
+
+      toast({ title: 'Exportação concluída' })
+      setSelectedIds([])
+    } catch (err) {
+      toast({ title: 'Erro ao exportar CSV', variant: 'destructive' })
+    } finally {
+      setIsProcessingBulk(false)
+    }
+  }
+
   return (
-    <div className="space-y-6 animate-fade-in-up pb-10">
+    <div className="space-y-6 animate-fade-in-up pb-10 relative min-h-screen">
       <PageHeader title="Ordens de Serviço">
         <Button onClick={() => setIsModalOpen(true)} className="gap-2 w-full sm:w-auto shadow-sm">
           <Plus className="h-4 w-4" />
@@ -122,8 +241,8 @@ export default function OrdensDeServico() {
         </Button>
       </PageHeader>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 bg-white dark:bg-slate-900 p-3 rounded-xl border shadow-sm">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6 bg-white dark:bg-slate-900 p-3 rounded-xl border shadow-sm items-center">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             placeholder="Buscar por título ou descrição..."
@@ -132,9 +251,20 @@ export default function OrdensDeServico() {
             className="pl-9 w-full bg-slate-50 dark:bg-slate-950 border-transparent hover:border-slate-200 focus:border-primary transition-colors"
           />
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+
+        <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto items-center">
+          <div className="flex items-center space-x-2 mr-2">
+            <Switch id="os-archived" checked={showArchived} onCheckedChange={setShowArchived} />
+            <Label
+              htmlFor="os-archived"
+              className="text-sm font-medium cursor-pointer whitespace-nowrap"
+            >
+              Arquivados
+            </Label>
+          </div>
+
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[160px] bg-slate-50 dark:bg-slate-950 border-transparent hover:border-slate-200">
+            <SelectTrigger className="w-full sm:w-[150px] bg-slate-50 dark:bg-slate-950 border-transparent hover:border-slate-200">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -144,12 +274,13 @@ export default function OrdensDeServico() {
               <SelectItem value="completed">Concluída</SelectItem>
             </SelectContent>
           </Select>
+
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-full sm:w-[160px] bg-slate-50 dark:bg-slate-950 border-transparent hover:border-slate-200">
+            <SelectTrigger className="w-full sm:w-[150px] bg-slate-50 dark:bg-slate-950 border-transparent hover:border-slate-200">
               <SelectValue placeholder="Prioridade" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas Prioridades</SelectItem>
+              <SelectItem value="all">Prioridades</SelectItem>
               <SelectItem value="low">Baixa</SelectItem>
               <SelectItem value="medium">Média</SelectItem>
               <SelectItem value="high">Alta</SelectItem>
@@ -163,7 +294,10 @@ export default function OrdensDeServico() {
         <Table>
           <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
             <TableRow>
-              <TableHead className="pl-6 w-[25%] font-semibold">Título</TableHead>
+              <TableHead className="w-[40px] pl-4">
+                <Checkbox checked={isAllSelected} onCheckedChange={handleSelectAll} />
+              </TableHead>
+              <TableHead className="pl-2 w-[25%] font-semibold">Título</TableHead>
               <TableHead className="font-semibold">Cliente</TableHead>
               <TableHead className="font-semibold">Status</TableHead>
               <TableHead className="font-semibold">Prioridade</TableHead>
@@ -176,7 +310,10 @@ export default function OrdensDeServico() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell className="pl-6">
+                  <TableCell className="pl-4">
+                    <Skeleton className="h-4 w-4" />
+                  </TableCell>
+                  <TableCell className="pl-2">
                     <Skeleton className="h-5 w-3/4" />
                   </TableCell>
                   <TableCell>
@@ -203,10 +340,19 @@ export default function OrdensDeServico() {
               orders.map((o) => (
                 <TableRow
                   key={o.id}
-                  className="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/80 transition-colors group"
+                  className={`cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/80 transition-colors group ${selectedIds.includes(o.id) ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                   onClick={() => openSheet(o)}
                 >
-                  <TableCell className="pl-6 font-medium">{o.title}</TableCell>
+                  <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedIds.includes(o.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) setSelectedIds([...selectedIds, o.id])
+                        else setSelectedIds(selectedIds.filter((id) => id !== o.id))
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell className="pl-2 font-medium">{o.title}</TableCell>
                   <TableCell className="text-slate-600 dark:text-slate-400">
                     {o.expand?.client_id?.name || '-'}
                   </TableCell>
@@ -220,13 +366,10 @@ export default function OrdensDeServico() {
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <Avatar className="h-7 w-7 border">
                         <AvatarImage
-                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${o.id}`}
+                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${o.assigned_to || o.id}`}
                         />
                         <AvatarFallback>R</AvatarFallback>
                       </Avatar>
-                      <span className="text-xs text-slate-600 dark:text-slate-400 hidden lg:inline-block truncate max-w-[100px]">
-                        Atribuído
-                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-slate-500">
@@ -268,7 +411,7 @@ export default function OrdensDeServico() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-16 text-slate-500">
+                <TableCell colSpan={8} className="text-center py-16 text-slate-500">
                   <div className="flex flex-col items-center gap-2">
                     <CalendarDays className="h-8 w-8 text-slate-300" />
                     <p>Nenhuma ordem de serviço encontrada com os filtros atuais.</p>
@@ -302,14 +445,25 @@ export default function OrdensDeServico() {
           orders.map((o) => (
             <Card
               key={o.id}
-              className="overflow-hidden active:scale-[0.98] transition-transform cursor-pointer border shadow-sm"
+              className={`overflow-hidden transition-all relative cursor-pointer border shadow-sm ${selectedIds.includes(o.id) ? 'ring-2 ring-primary ring-offset-2' : ''}`}
               onClick={() => openSheet(o)}
             >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex justify-between items-start gap-2">
+              <div className="absolute top-4 right-4 z-10" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedIds.includes(o.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) setSelectedIds([...selectedIds, o.id])
+                    else setSelectedIds(selectedIds.filter((id) => id !== o.id))
+                  }}
+                />
+              </div>
+              <CardContent className="p-4 space-y-3 pt-6">
+                <div className="flex justify-between items-start gap-2 pr-6">
                   <h3 className="font-medium text-slate-900 dark:text-white leading-tight line-clamp-2">
                     {o.title}
                   </h3>
+                </div>
+                <div className="flex items-center gap-2">
                   <StatusChip status={o.status} />
                 </div>
                 <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
@@ -324,7 +478,9 @@ export default function OrdensDeServico() {
                     </span>
                   </div>
                   <Avatar className="h-7 w-7 border">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${o.id}`} />
+                    <AvatarImage
+                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${o.assigned_to || o.id}`}
+                    />
                     <AvatarFallback>R</AvatarFallback>
                   </Avatar>
                 </div>
@@ -373,6 +529,97 @@ export default function OrdensDeServico() {
         order={selectedOrder}
         onUpdate={load}
       />
+
+      <BulkActionsBar
+        selectedCount={selectedIds.length}
+        onClear={() => setSelectedIds([])}
+        isProcessing={isProcessingBulk}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Status
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start">
+            <DropdownMenuItem onClick={() => handleBulkAction('status', 'open')}>
+              Em Aberto
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleBulkAction('status', 'in_progress')}>
+              Em Andamento
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleBulkAction('status', 'completed')}>
+              Concluída
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0 hidden sm:flex"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Atribuir
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="max-h-[300px] overflow-y-auto">
+            {users.map((u) => (
+              <DropdownMenuItem key={u.id} onClick={() => handleBulkAction('assign', u.id)}>
+                {u.name || u.email}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {!showArchived ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => handleBulkAction('archive')}
+            className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0"
+          >
+            <Archive className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Arquivar</span>
+          </Button>
+        ) : (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => handleBulkAction('unarchive')}
+            className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0"
+          >
+            <ArchiveRestore className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Desarquivar</span>
+          </Button>
+        )}
+
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleExportCsv}
+          className="bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border-0"
+        >
+          <Download className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Exportar</span>
+        </Button>
+
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => handleBulkAction('delete')}
+          className="border-0"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </BulkActionsBar>
     </div>
   )
 }

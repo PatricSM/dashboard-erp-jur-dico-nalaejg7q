@@ -9,11 +9,18 @@ export interface GetServiceOrdersOptions {
   search?: string
   status?: string
   priority?: string
+  showArchived?: boolean
 }
 
 export const getServiceOrdersPage = async (options: GetServiceOrdersOptions) => {
-  const { page = 1, perPage = 25, search, status, priority } = options
+  const { page = 1, perPage = 25, search, status, priority, showArchived } = options
   const filters: string[] = []
+
+  if (showArchived) {
+    filters.push(`archived = true`)
+  } else {
+    filters.push(`(archived = false || archived = null)`)
+  }
 
   if (search) {
     filters.push(`(title ~ "${search}" || description ~ "${search}")`)
